@@ -1,6 +1,6 @@
-from config import db, bcrypt
+from config import db, bcrypt 
+from datetime import datetime
 
-username = db.Column(db.String, unique=True, nullable=False)
 password_hash = db.Column(db.String, nullable=False)
 
 class User(db.Model):
@@ -12,3 +12,21 @@ class User(db.Model):
 
 	def check_password(self, password):
 		return bcrypt.check_password_hash(self.password_hash, password)
+
+	created_chores = db.relationship("Chore", foreign_keys="Chore.creator_id",
+					back_populates="creator")
+	assigned_chores = db.relationship("Chore", foreign_keys="Chore.assignee_id",
+					back_populates="assignee")
+
+class Chore(db.Model):
+	__tablename__ = "chores"
+
+	id = db.Column(db.Integer, primary_key=True)
+	title = db.Column(db.String, nullable=False)
+	due_date = db.Column(db.Date, nullable=False)
+	created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+	creator_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+	assignee_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+
