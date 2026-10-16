@@ -1,5 +1,5 @@
 from config import app, db
-from models import User, Chore
+from models import User, Chore, Complete
 
 
 @app.route("/")
