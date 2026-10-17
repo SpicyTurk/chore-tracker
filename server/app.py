@@ -1,7 +1,7 @@
 from config import app, db
 from models import User, Chore, Complete
 from flask import request, session
-from datetime import date
+from datetime import date, datetime
 from sqlalchemy import or_
 
 def current_user():
@@ -164,6 +164,41 @@ def delete_chore(chore_id):
 	db.session.delete(chore)
 	db.session.commit()
 	return {}, 204
+
+@app.route("/chores/<int:chore_id>/completion", methods=["POST"])
+def log_completion(chore_id):
+	user = current_user()
+	if not user:
+		return {"error": "Please log in first"}, 401
+
+	chore = db.session.get(Chore, chore_id)
+	if not chore:
+		return {"error": "Chore not found"}, 404
+
+	if chore.assignee_id != user.id:
+		return {"error": "Only the user that was assigned this chore can log the completion"}, 403
+
+	if chore.completion:
+		return {"error": "This chore has already been completed"}, 409
+
+	data = request.get_json()
+	completion_log = data.get("completed_on")
+	if not completion_log:
+		return {"error": "This field is required"}, 400
+
+	try:
+		completed_on = datetime.fromisoformat(completion_log)
+	except ValueError:
+		return {"error": "Date/Time must be in the format of YYYY-MM-DDT00:00"}, 400
+
+	if completed_on > datetime.now():
+		return {"error": "Completion log cannot be a future date"}, 400
+
+	new_completion = Complete(chore=chore, completed_on=completed_on)
+	db.session.add(new_completion)
+	db.session.commit()
+	return chore.to_dict(), 201
+
 
 
 if __name__ == "__main__":
