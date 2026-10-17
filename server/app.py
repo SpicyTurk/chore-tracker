@@ -2,6 +2,7 @@ from config import app, db
 from models import User, Chore, Complete
 from flask import request, session
 from datetime import date
+from sqlalchemy import or_
 
 def current_user():
 	user_id = session.get("user_id")
@@ -71,6 +72,29 @@ def create_chore():
 	db.session.commit()
 	return chore.to_dict(), 201
 
+@app.route("/chores", methods=["GET"])
+def list_chores():
+	user = current_user()
+	if not user:
+		return {"error": "Please login to view chore history"}, 401
+
+	page = request.args.get("page", 1, type=int)
+	per_page = request.args.get("per_page", 10, type=int)
+	per_page = min(per_page, 30)
+
+	query = Chore.query.filter(
+	    or_(Chore.creator_id == user.id, Chore.assignee_id == user.id)
+	).order_by(Chore.due_date.asc(), Chore.id.asc())
+
+	result = query.paginate(page=page, per_page=per_page, error_out=False)
+
+	return {
+	    "chores": [c.to_dict() for c in result.items],
+	    "page": result.page,
+	    "per_page": per_page,
+	    "total": result.total,
+	    "pages": result.pages,
+	}, 200
 
 @app.route("/logout", methods=["DELETE"])
 def logout():
