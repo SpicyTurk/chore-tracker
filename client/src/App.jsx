@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AuthForm from './AuthForm';
 
 const API = "http://localhost:5555";
 
@@ -16,9 +17,19 @@ function App() {
       .catch(() => setLoading(false));
   },  []);
 
-  if (loading) return <p>Checking...</p>;
-  if (!user) return <p>Please log in</p>;
-  return <h1>Welcome, {user.username}!</h1>;
+  function handleLogout() {
+    fetch(`${API}/logout`, { method: "DELETE", credentials: "include" })
+      .then(() => setUser(null));
+  }
+
+if (loading) return <p>Checking...</p>;
+if (!user) return <AuthForm onLogin={setUser} />;
+  return (
+    <div>
+      <h1>Welcome, {user.username}!</h1>
+      <button onClick={handleLogout}>Log out</button>
+    </div>
+  );
 }
 
 export default App;
