@@ -1,5 +1,5 @@
-from config import db, bcrypt 
-from datetime import datetime
+from config import db, bcrypt
+from datetime import datetime, date
 
 class User(db.Model):
 	__tablename__ = "users"
@@ -39,18 +39,28 @@ class Chore(db.Model):
 
 	def to_dict(self):
 		if self.completion:
-			completed = self.completion.completed_on.isoformat()
+			completed_on = self.completion.completed_on.isoformat()
 		else:
-			completed = None
+			completed_on = None
+
+
+		if self.completion:
+			status = "completed"
+		elif self.due_date < date.today():
+			status = "overdue"
+		else:
+			status = "pending"
 
 		return {
 			"id": self.id,
 			"title": self.title,
+			"status": status,
 			"due_date": self.due_date.isoformat(),
 			"creator": self.creator.username,
 			"assignee": self.assignee.username,
-			"completed_on": completed
+			"completed_on": completed_on
 		}
+
 
 
 
