@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AuthForm from './AuthForm';
+import ChoreList from './ChoreList';
 
 const API = "http://localhost:5555";
 
@@ -28,6 +29,7 @@ if (!user) return <AuthForm onLogin={setUser} />;
     <div>
       <h1>Welcome, {user.username}!</h1>
       <button onClick={handleLogout}>Log out</button>
+      <ChoreList />
     </div>
   );
 }
