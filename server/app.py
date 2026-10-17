@@ -145,6 +145,26 @@ def update_chore(chore_id):
 	db.session.commit()
 	return chore.to_dict(), 200
 
+@app.route("/chores/<int:chore_id>", methods=["DELETE"])
+def delete_chore(chore_id):
+	user = current_user()
+	if not user:
+		return {"error": "Please log in first"}, 401
+
+	chore = db.session.get(Chore, chore_id)
+	if not chore:
+		return {"error": "Chore not found"}, 404
+
+	if chore.creator_id != user.id:
+		return {"error": "Only the owner cab delete this chore"}, 403
+
+	if chore.completion:
+		return {"error": "Completed chores cannot be deleted"}, 409
+
+	db.session.delete(chore)
+	db.session.commit()
+	return {}, 204
+
 
 if __name__ == "__main__":
 	app.run(port=5555, debug=True)
