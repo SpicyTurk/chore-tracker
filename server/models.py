@@ -37,6 +37,22 @@ class Chore(db.Model):
 	creator = db.relationship("User", foreign_keys=[creator_id], back_populates="created_chores")
 	assignee = db.relationship("User", foreign_keys=[assignee_id], back_populates="assigned_chores")
 
+	def to_dict(self):
+		if self.completion:
+			completed = self.completion.completed_on.isoformat()
+		else:
+			completed = None
+
+		return {
+			"id": self.id,
+			"title": self.title,
+			"due_date": self.due_date.isoformat(),
+			"creator": self.creator.username,
+			"assignee": self.assignee.username,
+			"completed_on": completed
+		}
+
+
 
 class Complete(db.Model):
 	__tablename__ = "completed"
