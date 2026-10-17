@@ -156,12 +156,65 @@ def delete_chore(chore_id):
 		return {"error": "Chore not found"}, 404
 
 	if chore.creator_id != user.id:
-		return {"error": "Only the owner cab delete this chore"}, 403
+		return {"error": "Only the owner can delete this chore"}, 403
 
 	if chore.completion:
 		return {"error": "Completed chores cannot be deleted"}, 409
 
 	db.session.delete(chore)
+	db.session.commit()
+	return {}, 204
+
+@app.route("/chores/<int:chore_id>/completion", methods=["PATCH"])
+def update_completion_log(chore_id):
+	user = current_user()
+	if not user:
+		return {"error": "Please log in first"}, 401
+
+	chore = db.session.get(Chore, chore_id)
+	if not chore:
+		return {"error": "Chore not found"}, 404
+
+	if chore.assignee_id != user.id:
+		return {"error": "Only the user assigned to this chore can edit the completion log"}, 403
+
+	if not chore.completion:
+		return {"error": "No completion for this chore has been logged yet"}, 404
+
+	data = request.get_json()
+	completion_log = data.get("completed_on")
+	if not completion_log:
+		return {"error": "A completed date is required"}, 400
+
+	try:
+		completed_on = datetime.fromisoformat(completion_log)
+	except ValueError:
+		return {"error": "Date ust be in the format YYYY-MM-DDT00:00"}, 400
+
+	if completed_on > datetime.now():
+		return {"error": "Completion log cannot be a future date"}, 400
+
+	chore.completion.completed_on = completed_on
+	db.session.commit()
+	return chore.to_dict(), 200
+
+@app.route("/chores/<int:chore_id>/completion", methods=["DELETE"])
+def delete_completion_log(chore_id):
+	user = current_user()
+	if not user:
+		return {"error": "Please log in first"}, 401
+
+	chore = db.session.get(Chore, chore_id)
+	if not chore:
+		return {"error": "Chore not found"}, 404
+
+	if chore.assignee_id != user.id:
+		return {"error": "Only the user assigned to this chore can delete the completion log"}, 403
+
+	if not chore.completion:
+		return {"error": "No completion for this chore has been logged yet"}, 404
+
+	db.session.delete(chore.completion)
 	db.session.commit()
 	return {}, 204
 
