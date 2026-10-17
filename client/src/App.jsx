@@ -32,7 +32,7 @@ if (!user) return <AuthForm onLogin={setUser} />;
       <h1>Welcome, {user.username}!</h1>
       <button onClick={handleLogout}>Log out</button>
       <ChoreForm onCreated={() => setReloadKey(reloadKey + 1)} />
-      <ChoreList  reloadKey={reloadKey} />
+      <ChoreList  reloadKey={reloadKey} user={user} />
     </div>
   );
 }

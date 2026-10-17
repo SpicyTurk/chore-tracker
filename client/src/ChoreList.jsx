@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import MarkComplete from './MarkComplete';
 
 const API = "http://localhost:5555";
 const PER_PAGE = 5;
@@ -12,11 +13,12 @@ function formatDate(text) {
     });
 }
 
-function ChoreList({ reloadKey }) {
+function ChoreList({ reloadKey, user }) {
   const [chores, setChores] = useState([]);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [error, setError] = useState("");
+  const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
     async function loadChores() {
@@ -38,7 +40,7 @@ function ChoreList({ reloadKey }) {
         }
     }
     loadChores();
-  }, [page, reloadKey]);
+  }, [page, reloadKey, refresh]);
 
   return (
     <div>
@@ -48,6 +50,7 @@ function ChoreList({ reloadKey }) {
         {chores.map((c) => (
           <li key={c.id} style={{ marginBottom: "1rem" }}>
             <strong>{c.title}</strong>
+            <div>Created by {c.creator} - Assigned to {c.assignee}</div>
             {c.status === "overdue" && <span style={{ color: "red" }}> Overdue</span>}
             {c.status === "completed" && <span style={{ color: "green" }}> Completed</span>}
             <div>
@@ -55,7 +58,9 @@ function ChoreList({ reloadKey }) {
                     ? `Completed: ${new Date(c.completed_on).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })} By: ${c.assignee}`
                     : `Due Date: ${formatDate(c.due_date)}`}
                     </div>
-            <div>Created by {c.creator} - Assigned to {c.assignee}</div>
+            {c.status !== "completed" && user.username === c.assignee && (
+                <MarkComplete choreId={c.id} onCompleted={() => setRefresh(refresh + 1)} />
+            )}
           </li>
         ))}
         </ul>
