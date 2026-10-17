@@ -12,7 +12,7 @@ function formatDate(text) {
     });
 }
 
-function ChoreList() {
+function ChoreList({ reloadKey }) {
   const [chores, setChores] = useState([]);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
@@ -38,7 +38,7 @@ function ChoreList() {
         }
     }
     loadChores();
-  }, [page]);
+  }, [page, reloadKey]);
 
   return (
     <div>
@@ -46,7 +46,7 @@ function ChoreList() {
       {error && <p style={{ color: "red" }}>{error}</p>}
       <ul style={{ listStyle: "none", padding: 0 }}>
         {chores.map((c) => (
-          <li key={c.id}style={{ marginBottom: "1rem" }}>
+          <li key={c.id} style={{ marginBottom: "1rem" }}>
             <strong>{c.title}</strong>
             {c.status === "overdue" && <span style={{ color: "red" }}> Overdue</span>}
             {c.status === "completed" && <span style={{ color: "green" }}> Completed</span>}
